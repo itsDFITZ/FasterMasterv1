@@ -60,9 +60,6 @@ public:
 
     float mix = 0.f;
     bool  muteOn = false;
-    float numSamples;
-    
-//    SoftClip softClip;
     float meterVal;
     float meterValIn;
     float meterValOut;
@@ -71,10 +68,15 @@ public:
 private:
     SoftClip softClip;
     RMSComp rmsComp;
+    float dry;
     float wetOut;
+    float compOut;
+    float clipOut;
+   
+    
    
     VUAnalysis VUAnalysis;
-   
+    ;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FasterMasterv1AudioProcessor)
 };

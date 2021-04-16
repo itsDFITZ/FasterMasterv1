@@ -100,7 +100,7 @@ void FasterMasterv1AudioProcessor::changeProgramName (int index, const juce::Str
 void FasterMasterv1AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     rmsComp.comp.prepare(spec);
-    rmsComp.comp.setRatio(2.f);
+    rmsComp.comp.setRatio(20.f);
     rmsComp.comp.setAttack(3.f);
     rmsComp.comp.setRelease(.03f);
     rmsComp.comp.setThreshold(-12.f);
@@ -141,47 +141,34 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
    auto totalNumOutputChannels = getTotalNumOutputChannels();
-//    for (auto channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel){
-//        buffer.clear (channel, 0, buffer.getNumSamples());
-   for (int channel = 0; channel < totalNumOutputChannels; ++channel){
-//        buffer.clear (channel, 0, buffer.getNumSamples());
+    
 
-   for (int n = 0;n<buffer.getNumSamples();++n){
-        float x = buffer.getReadPointer(channel)[n];
-        float dry = x;
-        
-//            meterVal = buffer.getReadPointer(channel)[n];
-        
-        meterValIn = VUAnalysis.processSample(x,channel);
-        
+   for (auto channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
+        buffer.clear (channel, 0, buffer.getNumSamples());
+
+       
+//  Loop to go through each sample in each buffer in each channel
+       for (int channel = 0; channel < totalNumOutputChannels; ++channel){
+       for (int n = 0; n < buffer.getNumSamples() ; ++n){
+            float x = buffer.getReadPointer(channel)[n];
+            dry = x;
+           
+//  Write values to meter for input, if bypassed, output vals are the same
+            meterValIn = VUAnalysis.processSample(x,channel);
         if (muteOn){
             meterValOut =VUAnalysis.processSample(x, channel);
-            
+            buffer.getWritePointer(channel)[n] = x;
         }else{
             
-//            Compress
-//                float compOut = dsp::Compressor<float> (x);
-            
-          float compOut = rmsComp.processSample(channel,x);
-            
-          
-//        float compOut = rmsComp.comp.processSample(channel, x);
-
-        
-//
-//            Clip
-          float clipOut = softClip.processSample(compOut,channel);
-        
-//            Mix
-          wetOut = mix * clipOut + (1.f - mix) * dry;
-        
-            buffer.getWritePointer(channel)[n] = wetOut;
-//
-      
-        
-
-        meterValOut = VUAnalysis.processSample(wetOut, channel);
-//        auto* channelData = buffer.getWritePointer (channel);
+//   If not bypassed..
+//   Compress
+          x = rmsComp.processSample(channel,x);
+//   Clip
+          x = softClip.processSample(x,channel);
+//   Mix
+          x = mix * x + (1.f - mix) * dry;
+          meterValOut = VUAnalysis.processSample(x, channel);
+          buffer.getWritePointer(channel)[n] = x;
         }}
 //    for (int channel = 0; channel < totalNumInputChannels; ++channel)
 //    {
@@ -189,7 +176,7 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 //
 //        // ..do something to the data...
 //    }
-    }}
+       }}
 
 //==============================================================================
 bool FasterMasterv1AudioProcessor::hasEditor() const
