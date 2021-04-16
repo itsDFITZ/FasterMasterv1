@@ -38,7 +38,7 @@ FasterMasterv1AudioProcessor::~FasterMasterv1AudioProcessor()
 AudioProcessorValueTreeState::ParameterLayout FasterMasterv1AudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
     
-    params.push_back( std::make_unique<AudioParameterFloat> ("mixValue","Mix",0.f,2.f,1.f) );
+    params.push_back( std::make_unique<AudioParameterFloat> ("mixValue","Mix",0.f,1.f,.01f) );
     
     return {params.begin() , params.end() };
     
@@ -111,7 +111,7 @@ void FasterMasterv1AudioProcessor::prepareToPlay (double sampleRate, int samples
     rmsComp.comp.prepare(spec);
     rmsComp.comp.setRatio(20.f);
     rmsComp.comp.setAttack(3.f);
-    rmsComp.comp.setRelease(.03f);
+    rmsComp.comp.setRelease(.3f);
     rmsComp.comp.setThreshold(-12.f);
 }
 
@@ -152,34 +152,28 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
    auto totalNumOutputChannels = getTotalNumOutputChannels();
     
 
-   for (auto channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
-//       buffer.clear (channel, 0, buffer.getNumSamples());
-
-    
+//    for (auto channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
+//      buffer.clear (channel, 0, buffer.getNumSamples());
     
 //  Loop to go through each sample in each buffer in each channel
        for (int channel = 0; channel < totalNumOutputChannels; ++channel){
        for (int n = 0; n < buffer.getNumSamples() ; ++n){
-           float mix = *state.getRawParameterValue("mixValue");
-            float x = buffer.getReadPointer(channel)[n];
+            mix = *state.getRawParameterValue("mixValue");
+            x = buffer.getWritePointer(channel)[n];
             dry = x;
 //  Write values to meter for input, if bypassed, output vals are the same
-            meterValIn = VUAnalysis.processSample(x,channel);
+            meterValIn = vuAnalysis.processSample(x,channel);
         if (muteOn){
-            meterValOut =VUAnalysis.processSample(x, channel);
-//            if bypassed, write the dry signal
-            buffer.getWritePointer(channel)[n] = dry;
+            meterValOut = vuAnalysis.processSample(x, channel);
         }else{
-            
-//   If not bypassed..
 //   Compress
-          x = rmsComp.processSample(channel,x);
+          compOut = rmsComp.processSample(channel,x);
 //   Clip
-          x = softClip.processSample(x,channel);
+          clipOut = softClip.processSample(compOut,channel);
 //   Mix
-          x = mix * x + (1.f - mix) * dry;
-          meterValOut = VUAnalysis.processSample(x, channel);
-          buffer.getWritePointer(channel)[n] = x;
+          wetOut = mix * clipOut + (1.f - mix) * dry;
+          meterValOut = vuAnalysis.processSample(wetOut, channel);
+          buffer.getWritePointer(channel)[n] = wetOut;
         }}
 //    for (int channel = 0; channel < totalNumInputChannels; ++channel)
 //    {

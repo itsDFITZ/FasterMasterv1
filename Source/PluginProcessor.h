@@ -74,10 +74,11 @@ private:
     float wetOut;
     float compOut;
     float clipOut;
+    float x;
    
     
    
-    VUAnalysis VUAnalysis;
+    VUAnalysis vuAnalysis;
     ;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FasterMasterv1AudioProcessor)
