@@ -25,7 +25,8 @@ FasterMasterv1AudioProcessor::FasterMasterv1AudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ), state(*this, nullptr, "mixParams",
+                                createParameterLayout())
 #endif
 {
 }
@@ -34,6 +35,14 @@ FasterMasterv1AudioProcessor::~FasterMasterv1AudioProcessor()
 {
 }
 
+AudioProcessorValueTreeState::ParameterLayout FasterMasterv1AudioProcessor::createParameterLayout(){
+    std::vector<std::unique_ptr<RangedAudioParameter>> params;
+    
+    params.push_back( std::make_unique<AudioParameterFloat> ("mixValue","Mix",0.f,2.f,1.f) );
+    
+    return {params.begin() , params.end() };
+    
+}
 //==============================================================================
 const juce::String FasterMasterv1AudioProcessor::getName() const
 {
@@ -144,20 +153,22 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     
 
    for (auto channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
-        buffer.clear (channel, 0, buffer.getNumSamples());
+//       buffer.clear (channel, 0, buffer.getNumSamples());
 
-       
+    
+    
 //  Loop to go through each sample in each buffer in each channel
        for (int channel = 0; channel < totalNumOutputChannels; ++channel){
        for (int n = 0; n < buffer.getNumSamples() ; ++n){
+           float mix = *state.getRawParameterValue("mixValue");
             float x = buffer.getReadPointer(channel)[n];
             dry = x;
-           
 //  Write values to meter for input, if bypassed, output vals are the same
             meterValIn = VUAnalysis.processSample(x,channel);
         if (muteOn){
             meterValOut =VUAnalysis.processSample(x, channel);
-            buffer.getWritePointer(channel)[n] = x;
+//            if bypassed, write the dry signal
+            buffer.getWritePointer(channel)[n] = dry;
         }else{
             
 //   If not bypassed..
@@ -195,14 +206,23 @@ void FasterMasterv1AudioProcessor::getStateInformation (juce::MemoryBlock& destD
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    auto currentState = state.copyState();
+    std::unique_ptr<XmlElement> xml (currentState.createXml());
+    copyXmlToBinary(*xml, destData);
+    
 }
 
 void FasterMasterv1AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<XmlElement> xml ( getXmlFromBinary(data, sizeInBytes));
+    if (xml && xml->hasTagName(state.state.getType())){
+        state.replaceState(ValueTree::fromXml(*xml));
+    }
+    
+    
 }
-
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

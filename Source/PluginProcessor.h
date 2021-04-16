@@ -57,7 +57,9 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    AudioProcessorValueTreeState state;
+    AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    
     float mix = 0.f;
     bool  muteOn = false;
     float meterVal;
