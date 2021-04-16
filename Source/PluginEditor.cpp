@@ -44,7 +44,8 @@ FasterMasterv1AudioProcessorEditor::FasterMasterv1AudioProcessorEditor (FasterMa
     meterOut.configuration = SimpleMeter::VERTICAL;
     addAndMakeVisible(meterOut);
     
-    startTimerHz(30);
+    startTimerHz(15);
+
 }
 
 FasterMasterv1AudioProcessorEditor::~FasterMasterv1AudioProcessorEditor()
@@ -69,6 +70,7 @@ void FasterMasterv1AudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("INPUT",0,200, 150,65,juce::Justification::centred,1 );
     g.drawFittedText ("OUTPUT",251,200, 150,65,juce::Justification::centred,1 );
   
+    sliderAttachments.emplace_back(new AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state,"mix",mixSlider));
 }
 
 void FasterMasterv1AudioProcessorEditor::resized()
@@ -96,3 +98,4 @@ void FasterMasterv1AudioProcessorEditor::timerCallback(){
     meterIn.update(audioProcessor.meterValIn);
     meterOut.update(audioProcessor.meterValOut);
 }
+

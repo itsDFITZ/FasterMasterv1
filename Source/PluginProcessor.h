@@ -60,24 +60,20 @@ public:
     AudioProcessorValueTreeState state;
     AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
-    float mix = 0.f;
+    float mix;
     bool  muteOn = false;
     float meterVal;
     float meterValIn;
     float meterValOut;
     ProcessSpec spec;
-    
+    float dry;
+    float wetOut;
+    float compOut;
+    float clipOut;
+    float x;
 private:
     SoftClip softClip;
     RMSComp rmsComp;
-//    float dry;
-//    float wetOut;
-//    float compOut;
-//    float clipOut;
-//    float x;
-   
-    
-   
     VUAnalysis vuAnalysis;
     ;
     //==============================================================================

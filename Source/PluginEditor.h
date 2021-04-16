@@ -36,6 +36,9 @@ public:
     
     SimpleMeter meterOut;
 
+    std::vector<std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment>> sliderAttachments;
+
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

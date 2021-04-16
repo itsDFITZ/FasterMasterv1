@@ -38,7 +38,7 @@ FasterMasterv1AudioProcessor::~FasterMasterv1AudioProcessor()
 AudioProcessorValueTreeState::ParameterLayout FasterMasterv1AudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
     
-    params.push_back( std::make_unique<AudioParameterFloat> ("mixValue","Mix",0.f,1.f,.01f) );
+    params.push_back( std::make_unique<AudioParameterFloat> ("mix","Mix",0.f,1.f,.01f) );
     
     return {params.begin() , params.end() };
     
@@ -153,13 +153,15 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i){
-     buffer.clear (i, 0, buffer.getNumSamples());}
+     buffer.clear (i, 0, buffer.getNumSamples());
+    }
     
 //  Loop to go through each sample in each buffer in each channel
-       for (int channel = 0; channel < totalNumOutputChannels; ++channel){
+       for (int channel = 0; channel < 2; ++channel){
        for (int n = 0; n < buffer.getNumSamples() ; ++n){
             float x = buffer.getReadPointer(channel)[n];
-            float mix = *state.getRawParameterValue("mixValue");
+            
+           mix = *state.getRawParameterValue("mixValue");
             float dry = x;
 //  Write values to meter for input, if bypassed, output vals are the same
             meterValIn = vuAnalysis.processSample(x,channel);
@@ -167,21 +169,28 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             meterValOut = vuAnalysis.processSample(x, channel);
         }else{
 //   Compress
-          float compOut = rmsComp.processSample(channel,x);
+//          float compOut = rmsComp.processSample(channel,x);
+          float compOut = rmsComp.processSample(x,channel);
 //   Clip
           float clipOut = softClip.processSample(compOut,channel);
 //   Mix
           float wetOut = mix * clipOut + (1.f - mix) * dry;
           meterValOut = vuAnalysis.processSample(wetOut, channel);
           buffer.getWritePointer(channel)[n] = wetOut;
-        }}
+          
+          
+        }
+           
+       }
 //    for (int channel = 0; channel < totalNumInputChannels; ++channel)
 //    {
 //        auto* channelData = buffer.getWritePointer (channel);
-//
+   
 //        // ..do something to the data...
 //    }
-       }}
+       }
+    
+}
 
 //==============================================================================
 bool FasterMasterv1AudioProcessor::hasEditor() const
