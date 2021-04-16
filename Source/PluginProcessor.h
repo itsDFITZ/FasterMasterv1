@@ -70,11 +70,11 @@ public:
 private:
     SoftClip softClip;
     RMSComp rmsComp;
-    float dry;
-    float wetOut;
-    float compOut;
-    float clipOut;
-    float x;
+//    float dry;
+//    float wetOut;
+//    float compOut;
+//    float clipOut;
+//    float x;
    
     
    

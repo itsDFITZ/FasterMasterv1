@@ -152,26 +152,26 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
    auto totalNumOutputChannels = getTotalNumOutputChannels();
     
 
-//    for (auto channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
-//      buffer.clear (channel, 0, buffer.getNumSamples());
+    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i){
+     buffer.clear (i, 0, buffer.getNumSamples());}
     
 //  Loop to go through each sample in each buffer in each channel
        for (int channel = 0; channel < totalNumOutputChannels; ++channel){
        for (int n = 0; n < buffer.getNumSamples() ; ++n){
-            mix = *state.getRawParameterValue("mixValue");
-            x = buffer.getWritePointer(channel)[n];
-            dry = x;
+            float x = buffer.getReadPointer(channel)[n];
+            float mix = *state.getRawParameterValue("mixValue");
+            float dry = x;
 //  Write values to meter for input, if bypassed, output vals are the same
             meterValIn = vuAnalysis.processSample(x,channel);
         if (muteOn){
             meterValOut = vuAnalysis.processSample(x, channel);
         }else{
 //   Compress
-          compOut = rmsComp.processSample(channel,x);
+          float compOut = rmsComp.processSample(channel,x);
 //   Clip
-          clipOut = softClip.processSample(compOut,channel);
+          float clipOut = softClip.processSample(compOut,channel);
 //   Mix
-          wetOut = mix * clipOut + (1.f - mix) * dry;
+          float wetOut = mix * clipOut + (1.f - mix) * dry;
           meterValOut = vuAnalysis.processSample(wetOut, channel);
           buffer.getWritePointer(channel)[n] = wetOut;
         }}
