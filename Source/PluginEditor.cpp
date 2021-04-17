@@ -44,7 +44,7 @@ FasterMasterv1AudioProcessorEditor::FasterMasterv1AudioProcessorEditor (FasterMa
     meterOut.configuration = SimpleMeter::VERTICAL;
     addAndMakeVisible(meterOut);
     
-    startTimerHz(15);
+    startTimerHz(20);
 
 }
 

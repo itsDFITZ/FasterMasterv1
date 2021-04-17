@@ -71,10 +71,11 @@ public:
     float compOut;
     float clipOut;
     float x;
-private:
     SoftClip softClip;
     RMSComp rmsComp;
     VUAnalysis vuAnalysis;
+private:
+
     ;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FasterMasterv1AudioProcessor)

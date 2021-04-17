@@ -152,36 +152,41 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
    auto totalNumOutputChannels = getTotalNumOutputChannels();
     
 
-    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i){
-     buffer.clear (i, 0, buffer.getNumSamples());
-    }
+//    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i){
+//     buffer.clear (i, 0, buffer.getNumSamples());
+    
     
 //  Loop to go through each sample in each buffer in each channel
-       for (int channel = 0; channel < 2; ++channel){
-       for (int n = 0; n < buffer.getNumSamples() ; ++n){
-            float x = buffer.getReadPointer(channel)[n];
+       for (int channel = 0; channel < totalNumOutputChannels; ++channel)
+    {
+        for (int n = 0; n < buffer.getNumSamples() ; ++n)
+        {
+            x = buffer.getReadPointer(channel)[n];
             
-           mix = *state.getRawParameterValue("mixValue");
-            float dry = x;
+            mix = *state.getRawParameterValue("mix");
+            dry = x;
 //  Write values to meter for input, if bypassed, output vals are the same
             meterValIn = vuAnalysis.processSample(x,channel);
-        if (muteOn){
-            meterValOut = vuAnalysis.processSample(x, channel);
-        }else{
+        if (muteOn)
+            {
+                meterValOut = vuAnalysis.processSample(x, channel);
+            }
+        else
+                {
 //   Compress
 //          float compOut = rmsComp.processSample(channel,x);
-          float compOut = rmsComp.processSample(x,channel);
+                    compOut = rmsComp.processSample(x,channel);
 //   Clip
-          float clipOut = softClip.processSample(compOut,channel);
+                    clipOut = softClip.processSample(compOut,channel);
 //   Mix
-          float wetOut = mix * clipOut + (1.f - mix) * dry;
-          meterValOut = vuAnalysis.processSample(wetOut, channel);
-          buffer.getWritePointer(channel)[n] = wetOut;
+                    wetOut = mix * clipOut + (1.f - mix) * dry;
+                    meterValOut = vuAnalysis.processSample(wetOut, channel);
+                    buffer.getWritePointer(channel)[n] = wetOut;
           
           
-        }
+                }
            
-       }
+        }
 //    for (int channel = 0; channel < totalNumInputChannels; ++channel)
 //    {
 //        auto* channelData = buffer.getWritePointer (channel);
