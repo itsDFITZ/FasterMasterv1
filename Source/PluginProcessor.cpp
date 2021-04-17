@@ -109,7 +109,7 @@ void FasterMasterv1AudioProcessor::changeProgramName (int index, const juce::Str
 void FasterMasterv1AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     rmsComp.comp.prepare(spec);
-    rmsComp.comp.setRatio(20.f);
+    rmsComp.comp.setRatio(4.f);
     rmsComp.comp.setAttack(3.f);
     rmsComp.comp.setRelease(.3f);
     rmsComp.comp.setThreshold(-12.f);
@@ -176,8 +176,15 @@ void FasterMasterv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 //   Compress
 //          float compOut = rmsComp.processSample(channel,x);
                     compOut = rmsComp.processSample(x,channel);
+                    float T = 12;
+                    float R = 4;
+//   Make Up
+                    float makeUp = T/R/2;
+                    float linMakeUp = pow(10,makeUp/10);
+                    makeUpOut = compOut + linMakeUp;
+                    
 //   Clip
-                    clipOut = softClip.processSample(compOut,channel);
+                    clipOut = softClip.processSample(makeUpOut,channel);
 //   Mix
                     wetOut = mix * clipOut + (1.f - mix) * dry;
                     meterValOut = vuAnalysis.processSample(wetOut, channel);

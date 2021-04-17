@@ -71,6 +71,7 @@ public:
     float compOut;
     float clipOut;
     float x;
+    float makeUpOut;
     SoftClip softClip;
     RMSComp rmsComp;
     VUAnalysis vuAnalysis;
